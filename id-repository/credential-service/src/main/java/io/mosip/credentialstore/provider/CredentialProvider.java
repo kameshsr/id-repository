@@ -111,10 +111,7 @@ public class CredentialProvider {
 	private CbeffUtil cbeffutil;
 
 	@Autowired
-	private VIDUtil vidUtil;
-
-	@Value("${credential.service.default.vid.type:PERPETUAL}")
-	private String defaultVidType;
+	VIDUtil vidUtil;
 
 	@Autowired(required = true)
 	@Qualifier("varres")
@@ -122,6 +119,9 @@ public class CredentialProvider {
 
 	@Value("${credential.service.dob.format}")
 	private String dobFormat;
+
+	@Value("${credential.service.default.vid.type:PERPETUAL}")
+	private String defaultVidType;
 
 	private static final Logger LOGGER = IdRepoLogger.getLogger(CredentialProvider.class);
 	
@@ -286,8 +286,13 @@ public class CredentialProvider {
 		for (AllowedKycDto key : sharableAttributeDemographicKeySet) {
 			String attribute = key.getSource().get(0).getAttribute();
 			Object formattedObject=null;
-			if(!userReqMaskingAttributes.contains(attribute) && !userReqFormatingAttributes.containsKey(attribute))
+			
+			if ((userReqMaskingAttributes == null || userReqMaskingAttributes.isEmpty()
+					|| !userReqMaskingAttributes.contains(attribute))
+					&& (userReqFormatingAttributes == null || userReqFormatingAttributes.isEmpty()
+							|| !userReqFormatingAttributes.containsKey(attribute)))
 				continue;
+		
 			Object object = identity.get(attribute);
 				if (object != null) {
 					if(userReqMaskingAttributes.contains(attribute)) {
@@ -316,8 +321,9 @@ public class CredentialProvider {
 						attributesMap.put(key, vidInfoDTO.getVid());
 						additionalData.put("ExpiryTimestamp", vidInfoDTO.getExpiryTimestamp().toString());
 						additionalData.put("TransactionLimit", vidInfoDTO.getTransactionLimit());
+
 					}
-				}
+			}
 		}
 			credentialServiceRequestDto.setAdditionalData(additionalData);
 		String individualBiometricsValue = null;
