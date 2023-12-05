@@ -26,7 +26,7 @@ import io.mosip.kernel.dataaccess.hibernate.config.HibernateDaoConfig;
 @EnableBatchProcessing
 @EnableScheduling
 public class CredentialRequestGeneratorBootApplication {
-
+//d
 	/**
 	 * The main method.
 	 *
