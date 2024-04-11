@@ -1,16 +1,22 @@
 package io.mosip.credentialstore.test.provider.impl;
 
-import static org.junit.Assert.assertNotNull;
-import static org.junit.Assert.assertTrue;
-
-import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.io.IOUtils;
+import io.mosip.credentialstore.dto.AllowedKycDto;
+import io.mosip.credentialstore.dto.DataProviderResponse;
+import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
+import io.mosip.credentialstore.dto.PolicyAttributesDto;
+import io.mosip.credentialstore.dto.Source;
+import io.mosip.credentialstore.exception.ApiNotAccessibleException;
+import io.mosip.credentialstore.exception.CredentialFormatterException;
+import io.mosip.credentialstore.exception.DataEncryptionFailureException;
+import io.mosip.credentialstore.exception.SignatureException;
+import io.mosip.credentialstore.provider.CredentialProvider;
+import io.mosip.credentialstore.util.EncryptionUtil;
+import io.mosip.credentialstore.util.Utilities;
+import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
+import io.mosip.idrepository.core.dto.DocumentsDTO;
+import io.mosip.idrepository.core.dto.IdResponseDTO;
+import io.mosip.idrepository.core.dto.ResponseDTO;
+import io.mosip.idrepository.core.util.EnvUtil;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.junit.Before;
@@ -26,27 +32,14 @@ import org.springframework.test.context.TestContext;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.web.context.WebApplicationContext;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
-import io.mosip.credentialstore.dto.AllowedKycDto;
-import io.mosip.credentialstore.dto.DataProviderResponse;
-import io.mosip.credentialstore.dto.PartnerCredentialTypePolicyDto;
-import io.mosip.credentialstore.dto.PolicyAttributesDto;
-import io.mosip.credentialstore.dto.Source;
-import io.mosip.credentialstore.exception.ApiNotAccessibleException;
-import io.mosip.credentialstore.exception.CredentialFormatterException;
-import io.mosip.credentialstore.exception.DataEncryptionFailureException;
-import io.mosip.credentialstore.exception.SignatureException;
-import io.mosip.credentialstore.provider.CredentialProvider;
-import io.mosip.credentialstore.util.EncryptionUtil;
-import io.mosip.credentialstore.util.Utilities;
-import io.mosip.idrepository.core.builder.IdentityIssuanceProfileBuilder;
-import io.mosip.idrepository.core.dto.CredentialServiceRequestDto;
-import io.mosip.idrepository.core.dto.DocumentsDTO;
-import io.mosip.idrepository.core.dto.IdResponseDTO;
-import io.mosip.idrepository.core.dto.IdentityMapping;
-import io.mosip.idrepository.core.dto.ResponseDTO;
-import io.mosip.idrepository.core.util.EnvUtil;
+import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.assertTrue;
 
 @RunWith(SpringRunner.class)
 @WebMvcTest @Import(EnvUtil.class)
@@ -77,11 +70,6 @@ public class CredentialProviderTest {
 	private ResponseDTO response = new ResponseDTO();
 
 	PartnerCredentialTypePolicyDto policyResponse;
-
-	@Mock
-	private ObjectMapper mapper;
-	
-	IdentityMapping identityMapping;
 	
 	@Before
 	public void setUp() throws DataEncryptionFailureException, ApiNotAccessibleException, SignatureException,Exception {
@@ -139,13 +127,6 @@ public class CredentialProviderTest {
 		PolicyAttributesDto dto = new PolicyAttributesDto();
 		dto.setShareableAttributes(shareableAttributes);
 		policyResponse.setPolicies(dto);		
-
-		identityMapping = mapper.readValue(
-				IOUtils.toString(this.getClass().getClassLoader().getResourceAsStream("identity-mapping.json"),
-						StandardCharsets.UTF_8),
-				IdentityMapping.class);
-		IdentityIssuanceProfileBuilder.setIdentityMapping(identityMapping);
-		IdentityIssuanceProfileBuilder.setDateFormat("uuuu/MM/dd");
 	}
 
 	@Test
