@@ -476,7 +476,7 @@ public class CredentialServiceManager {
 					: Map.of();
 			try {
 				System.out.println("[CredService] API called: " + restServicesConstants.name());
-				System.out.println("[CredService] Request Body: " + new ObjectMapper().writeValueAsString(requestWrapper));
+				System.out.println("[CredService] Request Body: " + new ObjectMapper().findAndRegisterModules().writeValueAsString(requestWrapper));
 			} catch (JsonProcessingException ex) {
 				System.out.println("[CredService] Request Body (raw): " + requestWrapper);
 			}
