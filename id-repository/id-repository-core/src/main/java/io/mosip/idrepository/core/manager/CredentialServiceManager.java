@@ -474,8 +474,15 @@ public class CredentialServiceManager {
 					&& !requestWrapper.getRequest().getRequestId().isEmpty()
 					? Map.of(RID, requestWrapper.getRequest().getRequestId())
 					: Map.of();
+			try {
+				System.out.println("[CredService] API called: " + restServicesConstants.name());
+				System.out.println("[CredService] Request Body: " + new ObjectMapper().writeValueAsString(requestWrapper));
+			} catch (JsonProcessingException ex) {
+				System.out.println("[CredService] Request Body (raw): " + requestWrapper);
+			}
 			response = restHelper
 					.requestSync(restBuilder.buildRequest(restServicesConstants, pathParam, requestWrapper, Map.class));
+			System.out.println("[CredService] Response Body: " + response);
 			mosipLogger.debug("Errors in response of Credential Request: {}" + response);
 
 
