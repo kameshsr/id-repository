@@ -1074,6 +1074,8 @@ public class IdRepoControllerTest {
 		assertNotNull(response);
 		assertEquals(200, response.getStatusCodeValue());
 		assertEquals(idResponseDTO, response.getBody());
-		verify(auditHelper).audit(any(), any(), eq("IND123"), eq(IdType.UIN), anyString());
+		// Controller now uses the fire-and-forget auditAsync(...) on the
+		// success path (see AuditHelper.auditAsync) — verify accordingly.
+		verify(auditHelper).auditAsync(any(), any(), eq("IND123"), eq(IdType.UIN), anyString());
 	}
 }

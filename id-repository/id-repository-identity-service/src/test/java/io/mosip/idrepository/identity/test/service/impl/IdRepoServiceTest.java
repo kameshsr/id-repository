@@ -37,6 +37,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.DataAccessResourceFailureException;
 import org.springframework.dao.RecoverableDataAccessException;
@@ -262,6 +263,18 @@ public class IdRepoServiceTest {
 				Lists.newArrayList("selectedHandles"));
 		ReflectionTestUtils.setField(service, "bioAttributes",
 				Lists.newArrayList("individualBiometrics", "parentOrGuardianBiometrics"));
+
+		// addDocuments now dispatches S3 uploads onto documentUploadExecutor.
+		// Inject a small initialized pool so the parallel CompletableFutures
+		// have somewhere to run; behavior is unchanged for the test (results
+		// are merged back into the caller-supplied lists in original order).
+		ThreadPoolTaskExecutor docUploadExec = new ThreadPoolTaskExecutor();
+		docUploadExec.setCorePoolSize(2);
+		docUploadExec.setMaxPoolSize(4);
+		docUploadExec.setQueueCapacity(8);
+		docUploadExec.setThreadNamePrefix("test-doc-upload-");
+		docUploadExec.initialize();
+		ReflectionTestUtils.setField(service, "documentUploadExecutor", docUploadExec);
 		RequestDTO req = new RequestDTO();
 		req.setRegistrationId("registrationId");
 		request.setRequest(req);

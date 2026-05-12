@@ -67,6 +67,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.context.annotation.Import;
 import org.springframework.core.env.Environment;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.TestContext;
@@ -100,6 +101,8 @@ import static org.junit.Assert.assertSame;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.anyString;
+import static org.mockito.Mockito.*;
 
 @ContextConfiguration(classes = { TestContext.class, WebApplicationContext.class })
 @RunWith(SpringRunner.class)
@@ -233,6 +236,15 @@ public class IdRepoDraftServiceImplTest {
 		ReflectionTestUtils.setField(idRepoServiceImpl, "uinEncryptSaltRepo", uinEncryptSaltRepo);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "uinBiometricRepo", uinBiometricRepo);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "uinDocumentRepo", uinDocumentRepo);
+		ReflectionTestUtils.setField(idRepoServiceImpl, "uinBioHRepo", uinBioHRepo);
+		ReflectionTestUtils.setField(idRepoServiceImpl, "uinDocHRepo", uinDocHRepo);
+		ThreadPoolTaskExecutor documentUploadExecutor = new ThreadPoolTaskExecutor() {
+			@Override
+			public void execute(Runnable task) {
+				task.run();
+			}
+		};
+		ReflectionTestUtils.setField(idRepoServiceImpl, "documentUploadExecutor", documentUploadExecutor);
 		ReflectionTestUtils.setField(idRepoServiceImpl, "bioAttributes",
 				Lists.newArrayList("individualBiometrics", "parentOrGuardianBiometrics"));
 		RestRequestDTO restReq = new RestRequestDTO();
