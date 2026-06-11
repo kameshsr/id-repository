@@ -24,8 +24,9 @@ Each collection has its own variables (collection → **Variables** tab). Common
 
 | Variable | Description |
 |---|---|
-| `baseUrl` | Service base URL incl. servlet path. For a deployed env use `https://<env-domain>` + the same path (e.g. `https://api-internal.dev.mosip.net/idrepository/v1/identity`). |
+| `baseUrl` | Service base URL incl. servlet path. For a deployed env all services are routed through one gateway domain, so use `https://<env-domain>` + the same path (e.g. `https://api-internal.dev1.mosip.net/idrepository/v1/identity`). |
 | `authToken` | MOSIP auth token (JWT), sent as `Authorization` cookie |
+| `currentUtcTimestamp` | Auto-set by a collection pre-request script — `requesttime` fields use it; no manual update needed |
 | `uin` / `vid` / `individualId` | Identifier under test |
 | `requestId` | Credential request id (returned by request generator) |
 | `rid` / `registrationId` | Registration id |
@@ -41,12 +42,14 @@ POST https://<env-domain>/v1/authmanager/authenticate/clientidsecretkey
   "version": "string",
   "requesttime": "2026-06-11T10:00:00.000Z",
   "request": {
-    "clientId": "<client-id>",
+    "clientId": "mosip-idrepo-client",
     "secretKey": "<secret>",
-    "appId": "regproc"
+    "appId": "idrepo"
   }
 }
 ```
+
+(For user-based auth use `/v1/authmanager/authenticate/useridPwd` instead; validate an existing token with `/v1/authmanager/authorize/admin/validateToken`.)
 
 Copy the token from the `authorization` response header into the `authToken` variable of each collection. The client must have the roles configured under the `mosip.role.idrepo.*` properties (e.g. `REGISTRATION_PROCESSOR`, `RESIDENT`, `CREDENTIAL_REQUEST`, `ID_AUTHENTICATION`).
 
@@ -86,6 +89,12 @@ Most write APIs use the standard MOSIP `RequestWrapper`:
 Exceptions: `POST /issue` (credential-service) and `POST /idvid/` (identity-service) take plain DTO bodies; `POST /authtypes/status` uses `requestTime` (camelCase) plus `individualId`/`consentObtained` at the top level.
 
 The `id` value per API is validated against the service's `mosip.idrepo.*.id` / `mosip.vid.*.id` configuration — adjust the sample value if your environment uses different ids.
+
+Notes:
+
+- VID request bodies use the JSON key `UIN` (uppercase), e.g. `"request": {"UIN": "123...", "vidType": "PERPETUAL"}`.
+- `requesttime` is auto-filled with `{{currentUtcTimestamp}}` by a collection-level pre-request script.
+- The identity object in add/update Identity must match your environment's ID schema (`IDSchemaVersion`, language-tagged arrays for fullName/gender/address, `individualBiometrics` referencing a document with base64 CBEFF).
 
 ## Typical Flows
 

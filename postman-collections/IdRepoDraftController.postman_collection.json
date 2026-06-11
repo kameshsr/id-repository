@@ -5,10 +5,26 @@
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
-    { "key": "baseUrl", "value": "http://localhost:8090/idrepository/v1/identity/draft" },
-    { "key": "authToken", "value": "" },
-    { "key": "registrationId", "value": "" },
-    { "key": "uin", "value": "" }
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8090/idrepository/v1/identity/draft"
+    },
+    {
+      "key": "authToken",
+      "value": ""
+    },
+    {
+      "key": "registrationId",
+      "value": ""
+    },
+    {
+      "key": "uin",
+      "value": ""
+    },
+    {
+      "key": "currentUtcTimestamp",
+      "value": ""
+    }
   ],
   "item": [
     {
@@ -16,17 +32,29 @@
       "request": {
         "method": "POST",
         "header": [
-          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+          {
+            "key": "Cookie",
+            "value": "Authorization={{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/create/{{registrationId}}?UIN={{uin}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["create", "{{registrationId}}"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "create",
+            "{{registrationId}}"
+          ],
           "query": [
-            { "key": "UIN", "value": "{{uin}}", "description": "Optional — for update-of-existing-UIN drafts" }
+            {
+              "key": "UIN",
+              "value": "{{uin}}",
+              "description": "Optional \u2014 for update-of-existing-UIN drafts"
+            }
           ]
         },
-        "description": "POST /draft/create/{registrationId} — creates a draft. UIN query param optional. Role: postdraftcreateregistrationId."
+        "description": "POST /draft/create/{registrationId} \u2014 creates a draft. UIN query param optional. Role: postdraftcreateregistrationId."
       }
     },
     {
@@ -34,19 +62,30 @@
       "request": {
         "method": "PATCH",
         "header": [
-          { "key": "Content-Type", "value": "application/json" },
-          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          },
+          {
+            "key": "Cookie",
+            "value": "Authorization={{authToken}}"
+          }
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": \"mosip.id.update\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-06-11T10:00:00.000Z\",\n  \"request\": {\n    \"registrationId\": \"{{registrationId}}\",\n    \"identity\": {\n      \"IDSchemaVersion\": 1.0,\n      \"fullName\": [{ \"language\": \"eng\", \"value\": \"John Doe\" }]\n    },\n    \"documents\": []\n  }\n}"
+          "raw": "{\n  \"id\": \"mosip.id.update\",\n  \"version\": \"v1\",\n  \"requesttime\": \"{{currentUtcTimestamp}}\",\n  \"request\": {\n    \"registrationId\": \"{{registrationId}}\",\n    \"identity\": {\n      \"IDSchemaVersion\": 1.0,\n      \"fullName\": [{ \"language\": \"eng\", \"value\": \"John Doe\" }]\n    },\n    \"documents\": []\n  }\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/update/{{registrationId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["update", "{{registrationId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "update",
+            "{{registrationId}}"
+          ]
         },
-        "description": "PATCH /draft/update/{registrationId} — updates draft demographic/documents. Role: patchdraftupdateregistrationId."
+        "description": "PATCH /draft/update/{registrationId} \u2014 updates draft demographic/documents. Role: patchdraftupdateregistrationId."
       }
     },
     {
@@ -54,14 +93,22 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+          {
+            "key": "Cookie",
+            "value": "Authorization={{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/publish/{{registrationId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["publish", "{{registrationId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "publish",
+            "{{registrationId}}"
+          ]
         },
-        "description": "GET /draft/publish/{registrationId} — publishes the draft into ID repo. Role: getdraftpublishregistrationId."
+        "description": "GET /draft/publish/{registrationId} \u2014 publishes the draft into ID repo. Role: getdraftpublishregistrationId."
       }
     },
     {
@@ -69,14 +116,22 @@
       "request": {
         "method": "DELETE",
         "header": [
-          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+          {
+            "key": "Cookie",
+            "value": "Authorization={{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/discard/{{registrationId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["discard", "{{registrationId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "discard",
+            "{{registrationId}}"
+          ]
         },
-        "description": "DELETE /draft/discard/{registrationId} — discards the draft. Role: deletedraftdiscardregistrationId."
+        "description": "DELETE /draft/discard/{registrationId} \u2014 discards the draft. Role: deletedraftdiscardregistrationId."
       }
     },
     {
@@ -84,14 +139,21 @@
       "request": {
         "method": "HEAD",
         "header": [
-          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+          {
+            "key": "Cookie",
+            "value": "Authorization={{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/{{registrationId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["{{registrationId}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{registrationId}}"
+          ]
         },
-        "description": "HEAD /draft/{registrationId} — 200 if draft exists, 204 otherwise. Role: draftregistrationId."
+        "description": "HEAD /draft/{registrationId} \u2014 200 if draft exists, 204 otherwise. Role: draftregistrationId."
       }
     },
     {
@@ -99,19 +161,38 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+          {
+            "key": "Cookie",
+            "value": "Authorization={{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/{{registrationId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["{{registrationId}}"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "{{registrationId}}"
+          ],
           "query": [
-            { "key": "fingerExtractionFormat", "value": "", "disabled": true },
-            { "key": "irisExtractionFormat", "value": "", "disabled": true },
-            { "key": "faceExtractionFormat", "value": "", "disabled": true }
+            {
+              "key": "fingerExtractionFormat",
+              "value": "",
+              "disabled": true
+            },
+            {
+              "key": "irisExtractionFormat",
+              "value": "",
+              "disabled": true
+            },
+            {
+              "key": "faceExtractionFormat",
+              "value": "",
+              "disabled": true
+            }
           ]
         },
-        "description": "GET /draft/{registrationId} — fetches the draft; optional biometric extraction format params. Role: getdraftregistrationId."
+        "description": "GET /draft/{registrationId} \u2014 fetches the draft; optional biometric extraction format params. Role: getdraftregistrationId."
       }
     },
     {
@@ -119,19 +200,39 @@
       "request": {
         "method": "PUT",
         "header": [
-          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+          {
+            "key": "Cookie",
+            "value": "Authorization={{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/extractbiometrics/{{registrationId}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["extractbiometrics", "{{registrationId}}"],
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "extractbiometrics",
+            "{{registrationId}}"
+          ],
           "query": [
-            { "key": "fingerExtractionFormat", "value": "", "disabled": true },
-            { "key": "irisExtractionFormat", "value": "", "disabled": true },
-            { "key": "faceExtractionFormat", "value": "", "disabled": true }
+            {
+              "key": "fingerExtractionFormat",
+              "value": "",
+              "disabled": true
+            },
+            {
+              "key": "irisExtractionFormat",
+              "value": "",
+              "disabled": true
+            },
+            {
+              "key": "faceExtractionFormat",
+              "value": "",
+              "disabled": true
+            }
           ]
         },
-        "description": "PUT /draft/extractbiometrics/{registrationId} — triggers biometric template extraction for the draft. Role: putdraftextractbiometricsregistrationId."
+        "description": "PUT /draft/extractbiometrics/{registrationId} \u2014 triggers biometric template extraction for the draft. Role: putdraftextractbiometricsregistrationId."
       }
     },
     {
@@ -139,14 +240,33 @@
       "request": {
         "method": "GET",
         "header": [
-          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+          {
+            "key": "Cookie",
+            "value": "Authorization={{authToken}}"
+          }
         ],
         "url": {
           "raw": "{{baseUrl}}/uin/{{uin}}",
-          "host": ["{{baseUrl}}"],
-          "path": ["uin", "{{uin}}"]
+          "host": [
+            "{{baseUrl}}"
+          ],
+          "path": [
+            "uin",
+            "{{uin}}"
+          ]
         },
-        "description": "GET /draft/uin/{UIN} — returns draft info for a UIN. Role: getdraftUIN."
+        "description": "GET /draft/uin/{UIN} \u2014 returns draft info for a UIN. Role: getdraftUIN."
+      }
+    }
+  ],
+  "event": [
+    {
+      "listen": "prerequest",
+      "script": {
+        "type": "text/javascript",
+        "exec": [
+          "pm.collectionVariables.set('currentUtcTimestamp', new Date().toISOString());"
+        ]
       }
     }
   ]
