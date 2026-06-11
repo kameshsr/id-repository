@@ -7,11 +7,13 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8090/idrepository/v1/identity"
+      "value": "http://localhost:8090/idrepository/v1/identity",
+      "description": "Service base URL. For deployed envs: https://<env-domain> + same path."
     },
     {
       "key": "currentUtcTimestamp",
-      "value": ""
+      "value": "",
+      "description": "Auto-filled by collection pre-request script. Do not set manually."
     }
   ],
   "item": [
@@ -27,7 +29,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"publisher\": \"IDA\",\n  \"topic\": \"<vid-event-topic>\",\n  \"publishedOn\": \"{{currentUtcTimestamp}}\",\n  \"event\": {\n    \"id\": \"<event-id>\",\n    \"transactionId\": \"<txn-id>\",\n    \"type\": { \"namespace\": \"mosip\", \"name\": \"vid_credential_status_update\" },\n    \"timestamp\": \"{{currentUtcTimestamp}}\",\n    \"data\": {\n      \"status\": \"ACTIVE\",\n      \"request\": {},\n      \"response\": {},\n      \"idaEvent\": {}\n    }\n  }\n}"
+          "raw": "{\n  \"publisher\": \"IDA\",\n  \"topic\": \"vid_credential_status_update\",\n  \"publishedOn\": \"{{currentUtcTimestamp}}\",\n  \"event\": {\n    \"id\": \"e2647e90-50d8-4f8d-9007-9dc9bf151fb1\",\n    \"transactionId\": \"txn-1234567890\",\n    \"type\": { \"namespace\": \"mosip\", \"name\": \"vid_credential_status_update\" },\n    \"timestamp\": \"{{currentUtcTimestamp}}\",\n    \"data\": {\n      \"status\": \"ACTIVE\",\n      \"request\": {},\n      \"response\": {},\n      \"idaEvent\": {}\n    }\n  }\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/callback/vid_credential_status_update",

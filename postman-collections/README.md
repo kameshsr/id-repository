@@ -24,12 +24,20 @@ Each collection has its own variables (collection → **Variables** tab). Common
 
 | Variable | Description |
 |---|---|
-| `baseUrl` | Service base URL incl. servlet path. For a deployed env all services are routed through one gateway domain, so use `https://<env-domain>` + the same path (e.g. `https://api-internal.dev1.mosip.net/idrepository/v1/identity`). |
-| `authToken` | MOSIP auth token (JWT), sent as `Authorization` cookie |
-| `currentUtcTimestamp` | Auto-set by a collection pre-request script — `requesttime` fields use it; no manual update needed |
-| `uin` / `vid` / `individualId` | Identifier under test |
-| `requestId` | Credential request id (returned by request generator) |
-| `rid` / `registrationId` | Registration id |
+All variables ship with working sample values (format-wise) — a third party only has to replace identifiers with ones that exist in their environment, and set `authToken`.
+
+| Variable | Sample value | What to put |
+|---|---|---|
+| `baseUrl` | `http://localhost:8090/idrepository/v1/identity` | Service base URL incl. servlet path. Deployed envs route all services through one gateway domain: `https://<env-domain>` + same path (e.g. `https://api-internal.dev1.mosip.net/idrepository/v1/identity`). |
+| `authToken` | *(empty — required)* | JWT from authmanager (see below), sent as `Authorization` cookie. |
+| `currentUtcTimestamp` | *(auto)* | Auto-set by a collection pre-request script; used by all `requesttime` fields. Do not set manually. |
+| `uin` | `9758610623` | A 10-digit UIN that exists in your environment. |
+| `vid` | `6048372815873185` | A 16-digit VID that exists in your environment. |
+| `individualId` | `9758610623` | UIN or VID of the individual. |
+| `rid` / `registrationId` | `27847321742954220250616011728` | 29-digit registration id. |
+| `requestId` | `0bf035cdb55bdd31a5905f8eba0c542d` | Credential request id returned by `POST /requestgenerator`. |
+
+Each variable also carries a description visible in Postman's Variables tab.
 
 ## Get an Auth Token
 
@@ -94,7 +102,9 @@ Notes:
 
 - VID request bodies use the JSON key `UIN` (uppercase), e.g. `"request": {"UIN": "123...", "vidType": "PERPETUAL"}`.
 - `requesttime` is auto-filled with `{{currentUtcTimestamp}}` by a collection-level pre-request script.
-- The identity object in add/update Identity must match your environment's ID schema (`IDSchemaVersion`, language-tagged arrays for fullName/gender/address, `individualBiometrics` referencing a document with base64 CBEFF).
+- Add/Update Identity bodies contain a full sample identity (fullName/gender/address as language-tagged eng/ara/fra arrays, dateOfBirth `yyyy/MM/dd`, `proofOfIdentity` and `individualBiometrics` referencing `fileReferenceID`). Adjust `IDSchemaVersion` (sample: 0.3) and attributes to match your environment's ID schema.
+- The `documents[].value` for `individualBiometrics` must be a base64-encoded CBEFF XML — left as a placeholder since it is environment/biometric specific.
+- Sample identifiers (UIN/VID/RID) are format-valid but won't exist in your database — replace them with real ones before running.
 
 ## Typical Flows
 

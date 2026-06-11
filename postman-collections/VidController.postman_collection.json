@@ -7,23 +7,28 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8091/idrepository/v1"
+      "value": "http://localhost:8091/idrepository/v1",
+      "description": "Service base URL. For deployed envs: https://<env-domain> + same path."
     },
     {
       "key": "authToken",
-      "value": ""
+      "value": "",
+      "description": "JWT from authmanager (clientidsecretkey: clientId=mosip-idrepo-client, appId=idrepo). Sent as Authorization cookie."
     },
     {
       "key": "uin",
-      "value": ""
+      "value": "9758610623",
+      "description": "Sample UIN (10-digit). Replace with a UIN existing in your environment."
     },
     {
       "key": "vid",
-      "value": ""
+      "value": "6048372815873185",
+      "description": "Sample 16-digit VID. Replace with a VID existing in your environment."
     },
     {
       "key": "currentUtcTimestamp",
-      "value": ""
+      "value": "",
+      "description": "Auto-filled by collection pre-request script. Do not set manually."
     }
   ],
   "item": [

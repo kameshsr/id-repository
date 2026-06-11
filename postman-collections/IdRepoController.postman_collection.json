@@ -7,31 +7,38 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8090/idrepository/v1/identity"
+      "value": "http://localhost:8090/idrepository/v1/identity",
+      "description": "Service base URL. For deployed envs: https://<env-domain> + same path."
     },
     {
       "key": "authToken",
-      "value": ""
+      "value": "",
+      "description": "JWT from authmanager (clientidsecretkey: clientId=mosip-idrepo-client, appId=idrepo). Sent as Authorization cookie."
     },
     {
       "key": "uin",
-      "value": ""
+      "value": "9758610623",
+      "description": "Sample UIN (10-digit). Replace with a UIN existing in your environment."
     },
     {
       "key": "vid",
-      "value": ""
+      "value": "6048372815873185",
+      "description": "Sample 16-digit VID. Replace with a VID existing in your environment."
     },
     {
       "key": "individualId",
-      "value": ""
+      "value": "9758610623",
+      "description": "UIN or VID of the individual."
     },
     {
       "key": "rid",
-      "value": ""
+      "value": "27847321742954220250616011728",
+      "description": "Sample 29-digit registration id (RID)."
     },
     {
       "key": "currentUtcTimestamp",
-      "value": ""
+      "value": "",
+      "description": "Auto-filled by collection pre-request script. Do not set manually."
     }
   ],
   "item": [
@@ -51,7 +58,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": \"mosip.id.create\",\n  \"version\": \"v1\",\n  \"requesttime\": \"{{currentUtcTimestamp}}\",\n  \"request\": {\n    \"registrationId\": \"{{rid}}\",\n    \"identity\": {\n      \"IDSchemaVersion\": 1.0,\n      \"UIN\": \"{{uin}}\",\n      \"fullName\": [{ \"language\": \"eng\", \"value\": \"John Doe\" }],\n      \"dateOfBirth\": \"1990/01/01\"\n    },\n    \"documents\": [\n      { \"category\": \"individualBiometrics\", \"value\": \"<base64-cbeff>\" }\n    ],\n    \"verifiedAttributes\": []\n  }\n}"
+          "raw": "{\n  \"id\": \"mosip.id.create\",\n  \"version\": \"v1\",\n  \"requesttime\": \"{{currentUtcTimestamp}}\",\n  \"request\": {\n    \"registrationId\": \"{{rid}}\",\n    \"identity\": {\n      \"IDSchemaVersion\": 0.3,\n      \"UIN\": \"{{uin}}\",\n      \"fullName\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"John Doe\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"جون دو\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"John Doe\"\n        }\n      ],\n      \"dateOfBirth\": \"1990/01/01\",\n      \"gender\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"MLE\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"MLE\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"MLE\"\n        }\n      ],\n      \"addressLine1\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Address Line 1\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"العنوان السطر 1\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Adresse ligne 1\"\n        }\n      ],\n      \"city\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Sample City\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"مدينة\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Ville\"\n        }\n      ],\n      \"province\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Sample Province\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"مقاطعة\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Province\"\n        }\n      ],\n      \"region\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Sample Region\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"منطقة\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Région\"\n        }\n      ],\n      \"zone\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Sample Zone\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"منطقة فرعية\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Zone\"\n        }\n      ],\n      \"postalCode\": \"14022\",\n      \"phone\": \"9876543210\",\n      \"email\": \"john.doe@example.com\",\n      \"proofOfIdentity\": {\n        \"format\": \"txt\",\n        \"type\": \"DOC001\",\n        \"value\": \"fileReferenceID\"\n      },\n      \"individualBiometrics\": {\n        \"format\": \"cbeff\",\n        \"version\": 1.0,\n        \"value\": \"fileReferenceID\"\n      }\n    },\n    \"documents\": [\n      {\n        \"category\": \"individualBiometrics\",\n        \"value\": \"<base64-encoded-CBEFF-XML — biometric data captured during registration>\"\n      }\n    ],\n    \"verifiedAttributes\": []\n  }\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/",
@@ -62,7 +69,7 @@
             ""
           ]
         },
-        "description": "POST / \u2014 creates a new ID record (identity must match the configured ID schema). Role: postidrepo."
+        "description": "POST / — creates a new ID record (identity must match the configured ID schema). Role: postidrepo."
       }
     },
     {
@@ -81,7 +88,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": \"mosip.id.update\",\n  \"version\": \"v1\",\n  \"requesttime\": \"{{currentUtcTimestamp}}\",\n  \"request\": {\n    \"registrationId\": \"{{rid}}\",\n    \"status\": \"ACTIVATED\",\n    \"identity\": {\n      \"IDSchemaVersion\": 1.0,\n      \"UIN\": \"{{uin}}\"\n    }\n  }\n}"
+          "raw": "{\n  \"id\": \"mosip.id.update\",\n  \"version\": \"v1\",\n  \"requesttime\": \"{{currentUtcTimestamp}}\",\n  \"request\": {\n    \"registrationId\": \"{{rid}}\",\n    \"status\": \"ACTIVATED\",\n    \"identity\": {\n      \"IDSchemaVersion\": 0.3,\n      \"UIN\": \"{{uin}}\",\n      \"fullName\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"John Doe\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"جون دو\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"John Doe\"\n        }\n      ],\n      \"dateOfBirth\": \"1990/01/01\",\n      \"gender\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"MLE\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"MLE\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"MLE\"\n        }\n      ],\n      \"addressLine1\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Address Line 1\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"العنوان السطر 1\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Adresse ligne 1\"\n        }\n      ],\n      \"city\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Sample City\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"مدينة\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Ville\"\n        }\n      ],\n      \"province\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Sample Province\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"مقاطعة\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Province\"\n        }\n      ],\n      \"region\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Sample Region\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"منطقة\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Région\"\n        }\n      ],\n      \"zone\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Sample Zone\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"منطقة فرعية\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Zone\"\n        }\n      ],\n      \"postalCode\": \"14022\",\n      \"phone\": \"9876543210\",\n      \"email\": \"john.doe@example.com\",\n      \"proofOfIdentity\": {\n        \"format\": \"txt\",\n        \"type\": \"DOC001\",\n        \"value\": \"fileReferenceID\"\n      },\n      \"individualBiometrics\": {\n        \"format\": \"cbeff\",\n        \"version\": 1.0,\n        \"value\": \"fileReferenceID\"\n      }\n    }\n  }\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/",
@@ -92,7 +99,7 @@
             ""
           ]
         },
-        "description": "PATCH / \u2014 updates an existing ID record for a given UIN. Role: patchidrepo."
+        "description": "PATCH / — updates an existing ID record for a given UIN. Role: patchidrepo."
       }
     },
     {
@@ -142,7 +149,7 @@
             }
           ]
         },
-        "description": "GET /idvid/{id} \u2014 deprecated; retrieves identity by UIN/VID. Role: getidvidid."
+        "description": "GET /idvid/{id} — deprecated; retrieves identity by UIN/VID. Role: getidvidid."
       }
     },
     {
@@ -173,7 +180,7 @@
             ""
           ]
         },
-        "description": "POST /idvid/ \u2014 retrieves identity; body is plain IdRequestByIdDTO. Role: postidvidid."
+        "description": "POST /idvid/ — retrieves identity; body is plain IdRequestByIdDTO. Role: postidvidid."
       }
     },
     {
@@ -204,7 +211,7 @@
             "v2"
           ]
         },
-        "description": "POST /idvid/v2 \u2014 same as /idvid/ but body wrapped in RequestWrapper. Role: postidvididv2."
+        "description": "POST /idvid/v2 — same as /idvid/ but body wrapped in RequestWrapper. Role: postidvididv2."
       }
     },
     {
@@ -231,7 +238,7 @@
             "{{individualId}}"
           ]
         },
-        "description": "GET /authtypes/status/individualIdType/{IDType}/individualId/{ID} \u2014 deprecated since 1.2.0. IDType: UIN or VID."
+        "description": "GET /authtypes/status/individualIdType/{IDType}/individualId/{ID} — deprecated since 1.2.0. IDType: UIN or VID."
       }
     },
     {
@@ -255,7 +262,7 @@
             "{{individualId}}"
           ]
         },
-        "description": "GET /authtypes/status/{ID} \u2014 id type auto-detected (UIN/VID)."
+        "description": "GET /authtypes/status/{ID} — id type auto-detected (UIN/VID)."
       }
     },
     {
@@ -286,7 +293,7 @@
             "status"
           ]
         },
-        "description": "POST /authtypes/status \u2014 locks/unlocks auth types for an individual. Role: postauthtypesstatus."
+        "description": "POST /authtypes/status — locks/unlocks auth types for an individual. Role: postauthtypesstatus."
       }
     },
     {
@@ -316,7 +323,7 @@
             }
           ]
         },
-        "description": "GET /rid/{individualId} \u2014 deprecated since 1.2.3; returns RID for a UIN/VID."
+        "description": "GET /rid/{individualId} — deprecated since 1.2.3; returns RID for a UIN/VID."
       }
     },
     {
@@ -347,7 +354,7 @@
             "search"
           ]
         },
-        "description": "POST /idvid-metadata/search \u2014 returns IdVid metadata (incl. RID) for a UIN/VID. Role: postSearchIdVidMetadata."
+        "description": "POST /idvid-metadata/search — returns IdVid metadata (incl. RID) for a UIN/VID. Role: postSearchIdVidMetadata."
       }
     },
     {
@@ -381,7 +388,7 @@
             }
           ]
         },
-        "description": "GET /{individualId}/update-counts \u2014 remaining attribute-update counts. Role: remainingUpdateCountByIndividualId."
+        "description": "GET /{individualId}/update-counts — remaining attribute-update counts. Role: remainingUpdateCountByIndividualId."
       }
     }
   ],

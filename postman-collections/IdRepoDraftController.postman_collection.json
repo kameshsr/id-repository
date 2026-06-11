@@ -7,23 +7,28 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8090/idrepository/v1/identity/draft"
+      "value": "http://localhost:8090/idrepository/v1/identity/draft",
+      "description": "Service base URL. For deployed envs: https://<env-domain> + same path."
     },
     {
       "key": "authToken",
-      "value": ""
+      "value": "",
+      "description": "JWT from authmanager (clientidsecretkey: clientId=mosip-idrepo-client, appId=idrepo). Sent as Authorization cookie."
     },
     {
       "key": "registrationId",
-      "value": ""
+      "value": "27847321742954220250616011728",
+      "description": "Sample 29-digit registration id (RID)."
     },
     {
       "key": "uin",
-      "value": ""
+      "value": "9758610623",
+      "description": "Sample UIN (10-digit). Replace with a UIN existing in your environment."
     },
     {
       "key": "currentUtcTimestamp",
-      "value": ""
+      "value": "",
+      "description": "Auto-filled by collection pre-request script. Do not set manually."
     }
   ],
   "item": [
@@ -50,11 +55,11 @@
             {
               "key": "UIN",
               "value": "{{uin}}",
-              "description": "Optional \u2014 for update-of-existing-UIN drafts"
+              "description": "Optional — for update-of-existing-UIN drafts"
             }
           ]
         },
-        "description": "POST /draft/create/{registrationId} \u2014 creates a draft. UIN query param optional. Role: postdraftcreateregistrationId."
+        "description": "POST /draft/create/{registrationId} — creates a draft. UIN query param optional. Role: postdraftcreateregistrationId."
       }
     },
     {
@@ -73,7 +78,7 @@
         ],
         "body": {
           "mode": "raw",
-          "raw": "{\n  \"id\": \"mosip.id.update\",\n  \"version\": \"v1\",\n  \"requesttime\": \"{{currentUtcTimestamp}}\",\n  \"request\": {\n    \"registrationId\": \"{{registrationId}}\",\n    \"identity\": {\n      \"IDSchemaVersion\": 1.0,\n      \"fullName\": [{ \"language\": \"eng\", \"value\": \"John Doe\" }]\n    },\n    \"documents\": []\n  }\n}"
+          "raw": "{\n  \"id\": \"mosip.id.update\",\n  \"version\": \"v1\",\n  \"requesttime\": \"{{currentUtcTimestamp}}\",\n  \"request\": {\n    \"registrationId\": \"{{registrationId}}\",\n    \"identity\": {\n      \"IDSchemaVersion\": 0.3,\n      \"fullName\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"John Doe\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"جون دو\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"John Doe\"\n        }\n      ],\n      \"dateOfBirth\": \"1990/01/01\",\n      \"gender\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"MLE\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"MLE\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"MLE\"\n        }\n      ],\n      \"addressLine1\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Address Line 1\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"العنوان السطر 1\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Adresse ligne 1\"\n        }\n      ],\n      \"city\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Sample City\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"مدينة\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Ville\"\n        }\n      ],\n      \"province\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Sample Province\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"مقاطعة\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Province\"\n        }\n      ],\n      \"region\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Sample Region\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"منطقة\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Région\"\n        }\n      ],\n      \"zone\": [\n        {\n          \"language\": \"eng\",\n          \"value\": \"Sample Zone\"\n        },\n        {\n          \"language\": \"ara\",\n          \"value\": \"منطقة فرعية\"\n        },\n        {\n          \"language\": \"fra\",\n          \"value\": \"Zone\"\n        }\n      ],\n      \"postalCode\": \"14022\",\n      \"phone\": \"9876543210\",\n      \"email\": \"john.doe@example.com\",\n      \"proofOfIdentity\": {\n        \"format\": \"txt\",\n        \"type\": \"DOC001\",\n        \"value\": \"fileReferenceID\"\n      },\n      \"individualBiometrics\": {\n        \"format\": \"cbeff\",\n        \"version\": 1.0,\n        \"value\": \"fileReferenceID\"\n      }\n    },\n    \"documents\": []\n  }\n}"
         },
         "url": {
           "raw": "{{baseUrl}}/update/{{registrationId}}",
@@ -85,7 +90,7 @@
             "{{registrationId}}"
           ]
         },
-        "description": "PATCH /draft/update/{registrationId} \u2014 updates draft demographic/documents. Role: patchdraftupdateregistrationId."
+        "description": "PATCH /draft/update/{registrationId} — updates draft demographic/documents. Role: patchdraftupdateregistrationId."
       }
     },
     {
@@ -108,7 +113,7 @@
             "{{registrationId}}"
           ]
         },
-        "description": "GET /draft/publish/{registrationId} \u2014 publishes the draft into ID repo. Role: getdraftpublishregistrationId."
+        "description": "GET /draft/publish/{registrationId} — publishes the draft into ID repo. Role: getdraftpublishregistrationId."
       }
     },
     {
@@ -131,7 +136,7 @@
             "{{registrationId}}"
           ]
         },
-        "description": "DELETE /draft/discard/{registrationId} \u2014 discards the draft. Role: deletedraftdiscardregistrationId."
+        "description": "DELETE /draft/discard/{registrationId} — discards the draft. Role: deletedraftdiscardregistrationId."
       }
     },
     {
@@ -153,7 +158,7 @@
             "{{registrationId}}"
           ]
         },
-        "description": "HEAD /draft/{registrationId} \u2014 200 if draft exists, 204 otherwise. Role: draftregistrationId."
+        "description": "HEAD /draft/{registrationId} — 200 if draft exists, 204 otherwise. Role: draftregistrationId."
       }
     },
     {
@@ -192,7 +197,7 @@
             }
           ]
         },
-        "description": "GET /draft/{registrationId} \u2014 fetches the draft; optional biometric extraction format params. Role: getdraftregistrationId."
+        "description": "GET /draft/{registrationId} — fetches the draft; optional biometric extraction format params. Role: getdraftregistrationId."
       }
     },
     {
@@ -232,7 +237,7 @@
             }
           ]
         },
-        "description": "PUT /draft/extractbiometrics/{registrationId} \u2014 triggers biometric template extraction for the draft. Role: putdraftextractbiometricsregistrationId."
+        "description": "PUT /draft/extractbiometrics/{registrationId} — triggers biometric template extraction for the draft. Role: putdraftextractbiometricsregistrationId."
       }
     },
     {
@@ -255,7 +260,7 @@
             "{{uin}}"
           ]
         },
-        "description": "GET /draft/uin/{UIN} \u2014 returns draft info for a UIN. Role: getdraftUIN."
+        "description": "GET /draft/uin/{UIN} — returns draft info for a UIN. Role: getdraftUIN."
       }
     }
   ],
