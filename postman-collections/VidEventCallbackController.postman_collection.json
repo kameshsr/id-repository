@@ -1,0 +1,31 @@
+{
+  "info": {
+    "name": "VID Event Callback (identity-service)",
+    "description": "Postman collection for VidEventCallbackController (MOSIP id-repository, id-repository-identity-service).\n\nBase path: /idrepository/v1/identity (port 8090).\n\nThis is a WebSub callback endpoint — normally invoked by the WebSub hub with intent verification and an HMAC signature; manual calls may be rejected.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8090/idrepository/v1/identity" }
+  ],
+  "item": [
+    {
+      "name": "VID Credential Status Update Callback",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"publisher\": \"IDA\",\n  \"topic\": \"<vid-event-topic>\",\n  \"publishedOn\": \"2026-06-11T10:00:00.000Z\",\n  \"event\": {\n    \"id\": \"<event-id>\",\n    \"transactionId\": \"<txn-id>\",\n    \"type\": { \"namespace\": \"mosip\", \"name\": \"vid_credential_status_update\" },\n    \"timestamp\": \"2026-06-11T10:00:00.000Z\",\n    \"data\": {\n      \"status\": \"ACTIVE\",\n      \"request\": {},\n      \"response\": {},\n      \"idaEvent\": {}\n    }\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/callback/vid_credential_status_update",
+          "host": ["{{baseUrl}}"],
+          "path": ["callback", "vid_credential_status_update"]
+        },
+        "description": "POST /callback/vid_credential_status_update — handles VID credential status events. If data.status equals the configured VID active status, consumes request/response as credential request; otherwise consumes data.idaEvent."
+      }
+    }
+  ]
+}

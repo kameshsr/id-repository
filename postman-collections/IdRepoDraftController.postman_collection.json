@@ -1,0 +1,153 @@
+{
+  "info": {
+    "name": "Id Repo Draft (identity-service)",
+    "description": "Postman collection for IdRepoDraftController (MOSIP id-repository, id-repository-identity-service).\n\nBase path: /idrepository/v1/identity/draft (port 8090).\n\nSet `baseUrl` and `authToken` variables. All endpoints require `Authorization` cookie.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8090/idrepository/v1/identity/draft" },
+    { "key": "authToken", "value": "" },
+    { "key": "registrationId", "value": "" },
+    { "key": "uin", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Create Draft",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/create/{{registrationId}}?UIN={{uin}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["create", "{{registrationId}}"],
+          "query": [
+            { "key": "UIN", "value": "{{uin}}", "description": "Optional — for update-of-existing-UIN drafts" }
+          ]
+        },
+        "description": "POST /draft/create/{registrationId} — creates a draft. UIN query param optional. Role: postdraftcreateregistrationId."
+      }
+    },
+    {
+      "name": "Update Draft",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"mosip.id.update\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-06-11T10:00:00.000Z\",\n  \"request\": {\n    \"registrationId\": \"{{registrationId}}\",\n    \"identity\": {\n      \"IDSchemaVersion\": 1.0,\n      \"fullName\": [{ \"language\": \"eng\", \"value\": \"John Doe\" }]\n    },\n    \"documents\": []\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/update/{{registrationId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["update", "{{registrationId}}"]
+        },
+        "description": "PATCH /draft/update/{registrationId} — updates draft demographic/documents. Role: patchdraftupdateregistrationId."
+      }
+    },
+    {
+      "name": "Publish Draft",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/publish/{{registrationId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["publish", "{{registrationId}}"]
+        },
+        "description": "GET /draft/publish/{registrationId} — publishes the draft into ID repo. Role: getdraftpublishregistrationId."
+      }
+    },
+    {
+      "name": "Discard Draft",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/discard/{{registrationId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["discard", "{{registrationId}}"]
+        },
+        "description": "DELETE /draft/discard/{registrationId} — discards the draft. Role: deletedraftdiscardregistrationId."
+      }
+    },
+    {
+      "name": "Has Draft (HEAD)",
+      "request": {
+        "method": "HEAD",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/{{registrationId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["{{registrationId}}"]
+        },
+        "description": "HEAD /draft/{registrationId} — 200 if draft exists, 204 otherwise. Role: draftregistrationId."
+      }
+    },
+    {
+      "name": "Get Draft",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/{{registrationId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["{{registrationId}}"],
+          "query": [
+            { "key": "fingerExtractionFormat", "value": "", "disabled": true },
+            { "key": "irisExtractionFormat", "value": "", "disabled": true },
+            { "key": "faceExtractionFormat", "value": "", "disabled": true }
+          ]
+        },
+        "description": "GET /draft/{registrationId} — fetches the draft; optional biometric extraction format params. Role: getdraftregistrationId."
+      }
+    },
+    {
+      "name": "Extract Biometrics",
+      "request": {
+        "method": "PUT",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/extractbiometrics/{{registrationId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["extractbiometrics", "{{registrationId}}"],
+          "query": [
+            { "key": "fingerExtractionFormat", "value": "", "disabled": true },
+            { "key": "irisExtractionFormat", "value": "", "disabled": true },
+            { "key": "faceExtractionFormat", "value": "", "disabled": true }
+          ]
+        },
+        "description": "PUT /draft/extractbiometrics/{registrationId} — triggers biometric template extraction for the draft. Role: putdraftextractbiometricsregistrationId."
+      }
+    },
+    {
+      "name": "Get Draft by UIN",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/uin/{{uin}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["uin", "{{uin}}"]
+        },
+        "description": "GET /draft/uin/{UIN} — returns draft info for a UIN. Role: getdraftUIN."
+      }
+    }
+  ]
+}

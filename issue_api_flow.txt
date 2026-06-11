@@ -1,0 +1,291 @@
+POST /issue — External Service Calls Flow
+==========================================
+
+SERVICES CALLED (SUMMARY):
+----------------------------
+1.  Partner Management Service       — GET policy by partnerId + credentialType
+                                       ${mosip.pms.partnermanager.url}/v1/partnermanager/partners/{partnerId}/credentialtype/{credentialType}/policies
+2.  Partner Management Service       — GET bio extractor formats by partnerId + policyId
+                                       ${mosip.pms.partnermanager.url}/v1/partnermanager/partners/{partnerId}/bioextractors/{policyId}
+3.  VID Service                      — GET UIN by VID (only if id is a VID)
+4.  ID Repository (Identity Service) — POST fetch identity by id
+    4a. VID Service                  — GET UIN by VID (inside ID repo, if idType=VID)
+    4b. DB (uin_repo)                — findByUinHash / getUinHashByRid
+    4c. DB (uin_history_repo)        — getUinHashByRid (fallback for RID)
+    4d. DB (uin_hash_salt_repo)      — retrieveSaltById (for UIN hashing)
+    4e. Object Store                 — GET biometric file per biometric record (if type=bio/all)
+    4f. Object Store                 — GET demographic document per document record (if type=demo/all)
+    4g. Biometric Extraction Service — extractTemplate per modality (if extraction formats provided)
+5.  KeyManager                       — POST /jwtSign (digital signature)
+6.  DataShare Service                — POST multipart upload (only if policy typeOfShare = "Data Share")
+    6a. Partner Management Service   — GET policy by policyId + subscriberId
+                                       PARTNER_POLICY=${mosip.pms.partnermanager.url}/v1/partnermanager/partners/{partnerId}/policies/{policyId}
+                                       [Cached in "partnerpolicyCache", auto-evicted on schedule]
+    6b. KeyManager / CryptoManager   — POST /encrypt (only if encryptionType = "Partner Based")
+                                       CRYPTOMANAGER_ENCRYPT=${mosip.cryptomanager.url}/v1/cryptomanager/encrypt
+                                       Request: { applicationId: "PARTNER", referenceId: subscriberId, data: base64(fileBytes) }
+    6c. KeyManager                   — POST /jwtSign (file JWT signature)
+                                       KEYMANAGER_JWTSIGN=${mosip.keymanager.url}/v1/keymanager/jwtSign
+                                       Request: { dataToSign: base64(signatureJson with SHA256 digest), includeCertHash, includeCertificate }
+    6d. Object Store                 — PUT file + metadata (objectStoreAdapter.putObject + addObjectMetaData)
+7.  KeyManager / CryptoManager       — POST /encrypt (only if NOT Data Share)
+                                       CRYPTOMANAGER_ENCRYPT=${mosip.cryptomanager.url}/v1/cryptomanager/encrypt
+8.  WebSub Hub                       — registerTopic + publishUpdate
+
+============================================================
+
+[Client] --> POST /issue --> [CredentialStoreController]
+                                      |
+                                      v
+                            [CredentialStoreServiceImpl.createCredentialIssuance()]
+                                      |
+                                      |
+  STEP 1: GET Policy
+  ------------------
+  --> Partner Management Service
+      GET /partners/{partnerId}/credentialtype/{credentialType}/policies
+      Response: PartnerCredentialTypePolicyDto (policyId, sharableAttributes, dataSharePolicies)
+      [Cached in DATASHARE_POLICIES + policyMap]
+                                      |
+                                      |
+  STEP 2: GET Bio Extractor Formats
+  ----------------------------------
+  --> Partner Management Service
+      GET /partners/{partnerId}/bioextractors/{policyId}
+      Response: PartnerExtractorResponse (face/finger/iris formatter + version)
+      [Cached in PARTNER_EXTRACTOR_FORMATS + extractorMap]
+                                      |
+                                      |
+  STEP 3: Fetch Identity
+  ----------------------
+  --> ID Repository  [IdRepoController → IdRepoProxyServiceImpl]
+      POST /idrepo/identity (IDREPORETRIEVEIDBYID)
+      Request: { id, idType, type, fingerExtractionFormat, faceExtractionFormat, irisExtractionFormat }
+
+      Inside ID Repository — retrieveIdentity() flow:
+      ------------------------------------------------
+      A) Determine ID type (if not provided):
+         - validateUin(id)  → IdType.UIN
+         - validateVid(id)  → IdType.VID
+         - else             → IdType.ID (RID)
+
+      B) Route by ID type:
+
+         IF UIN:
+           - Compute uinHash: getSaltKeyForId(uin) → uinHashSaltRepo.retrieveSaltById(saltId)
+                              → securityManager.hashwithSalt(uin, salt)  [result: saltId_hashValue]
+           - DB lookup: uinRepo.findByUinHash(uinHash)  → Uin entity
+
+         IF VID:
+           - Call VID Service REST: GET /vid/{vid}  → returns UIN
+           - Then follow UIN path above
+
+         IF RID:
+           - DB lookup: uinRepo.getUinHashByRid(rid)
+                        fallback: uinHistoryRepo.getUinHashByRid(rid)
+           - Then follow UIN hash path
+
+      C) Load files based on requested type ("bio" / "demo" / "all"):
+
+         IF type contains "bio" or "all":
+           - For each biometric row in uin.getBiometrics():
+             → objectStoreHelper.getBiometricObject(uinHash, bio.getBioFileId())
+               [fetches CBEFF XML bytes from Object Store]
+             → Verify hash: securityManager.hash(data) == bio.getBiometricFileHash()
+             IF extractionFormats provided (finger/face/iris format):
+               → Parse CBEFF XML → List<BIR>
+               → For each modality (FINGER, IRIS, FACE):
+                 → biometricExtractionService.extractTemplate(uinHash, fileName, formatKey, formatValue, birs)
+                   [async CompletableFuture per modality, waits with timeout]
+               → Rebuild CBEFF XML from extracted BIRs → cbeffUtil.createXML(finalBirs)
+             ELSE:
+               → Return raw CBEFF bytes as-is
+
+         IF type contains "demo" or "all":
+           - For each document row in uin.getDocuments():
+             → objectStoreHelper.getDemographicObject(uinHash, demo.getDocId())
+               [fetches document bytes from Object Store]
+             → Verify hash: securityManager.hash(data) == demo.getDocHash()
+
+      D) Build response — constructIdResponse():
+         - response.status     = uin.getStatusCode()
+         - response.identity   = uin.getUinData() deserialized to ObjectNode (JSON)
+                                 (verifiedAttributes field stripped out separately)
+         - response.documents  = list of { category, base64EncodedData }
+
+      Response: IdResponseDTO
+        { response: { status: "ACTIVATED"|"DEACTIVATED",
+                      identity: { UIN, fullName, DOB, ... },
+                      documents: [ { category: "individualBiometrics", value: base64CBEFF },
+                                   { category: "proofOfAddress", value: base64Doc }, ... ] } }
+                                      |
+                                      |
+  STEP 4 & 5 (Parallel):
+  -----------------------
+  STEP 4: Digital Signature (async via CompletableFuture)
+  --> KeyManager
+      POST /jwtSign (KEYMANAGER_JWTSIGN)
+      Request: { dataToSign: base64(credentialJSON), includeCertHash, includeCertificate, includePayload }
+      Response: jwtSignedData (signature string)
+
+  STEP 5: Share or Encrypt (based on policy typeOfShare)
+
+    IF typeOfShare == "Data Share":
+    --> DataShare Service  [DataShareController → DataShareServiceImpl]
+        POST /create/{policyId}/{subscriberId}  (multipart/form-data)
+        Request: file=credentialJSON bytes, policyId, subscriberId
+
+        Inside DataShare Service — createDataShare() flow:
+        ---------------------------------------------------
+        A) Fetch Policy:
+           - PolicyUtil.getPolicyDetail(policyId, subscriberId)
+             → Partner Management Service: GET /partners/{subscriberId}/policies/{policyId}
+             Response: DataShareDto { encryptionType, validForInMinutes, transactionsAllowed,
+                                      shareDomain, shareDomainUrlRead, protocol }
+             [Cached in "partnerpolicyCache", auto-evicted on schedule]
+
+           IF standaloneModeEnabled=true:
+             → Use static policy from config instead (no Partner Management call)
+
+        B) Encrypt + Sign in PARALLEL (CompletableFuture via dataShareTaskExecutor):
+
+           Encrypt thread (IF encryptionType == "Partner Based"):
+             → EncryptionUtil.encryptData(fileBytes, subscriberId)
+               → KeyManager / CryptoManager: POST /encrypt (CRYPTOMANAGER_ENCRYPT)
+                 Request: { applicationId: "PARTNER", referenceId: subscriberId,
+                            data: base64(fileBytes), prependThumbprint }
+                 Response: encrypted bytes
+
+           Encrypt thread (IF encryptionType == "none"):
+             → Use raw fileBytes as-is (no encryption call)
+
+           Sign thread (IF isSignatureDisabled=false):
+             → DigitalSignatureUtil.jwtSign(fileBytes, fileName, subscriberId, createTime, expiryTime)
+               → Computes SHA256 digest of file, builds JSON payload
+               → KeyManager: POST /jwtSign (KEYMANAGER_JWTSIGN)
+                 Request: { dataToSign: base64(signatureJson), includeCertHash,
+                            includeCertificate, includePayload }
+                 Response: jwtSignedData (compact JWS string)
+
+           Both futures joined via CompletableFuture.allOf(...).join()
+
+        C) Store file in Object Store:
+           - randomShareKey = subscriberId + policyId + timestamp + random
+           - objectStoreAdapter.putObject(subscriberId, policyId, randomShareKey, encryptedData)
+           - objectStoreAdapter.addObjectMetaData(...)
+             Metadata stored: { policyId, subscriberId, validForInMinutes,
+                                transactionsAllowed, signature, policyPublishDate }
+
+        D) Construct URL:
+           IF isShortUrl=true:
+             → Generate shortRandomShareKey, cache in Redis/CacheUtil
+             → URL: {shareDomainUrlRead}/datashare/{shortKey}
+           ELSE:
+             → URL: {shareDomain}/get/{policyId}/{subscriberId}/{randomShareKey}
+
+        Response: DataShare { url, policyId, subscriberId, validForInMinutes, transactionsAllowed }
+        [Credential Service sets dataShareUrl on CredentialServiceResponse]
+
+    ELSE:
+    --> KeyManager / CryptoManager
+        POST /encrypt (CRYPTOMANAGER_ENCRYPT)
+        Request: { applicationId: "PARTNER", referenceId: partnerId, data: base64(credentialJSON) }
+        Response: encrypted data string
+                                      |
+                                      |
+  STEP 6: Publish Event
+  ---------------------
+  --> WebSub Hub
+      registerTopic: {issuer}/CREDENTIAL_ISSUED   [Cached in "topics" cache]
+      publishUpdate: {issuer}/CREDENTIAL_ISSUED
+      Payload (EventModel):
+        - credential (encrypted data)  OR  dataShareUri
+        - proof: { signature }
+        - credentialType
+        - protectionKey (encryptionKey)
+        - transactionId (requestId)
+                                      |
+                                      v
+  RESPONSE: CredentialServiceResponseDto
+  {
+    status: "ISSUED",
+    credentialId: ...,
+    issuanceDate: ...,
+    signature: ...,
+    dataShareUrl: ... (only if Data Share path)
+  }
+
+
+NOTE (Bug):
+-----------
+Line 242 in CredentialStoreServiceImpl calls digitalSignatureUtil.sign() a SECOND time
+after already joining the async future at line 235.
+This causes signing to happen twice — wasting one extra KeyManager call on every request.
+
+
+============================================================
+DOWNSTREAM: IDA (ID-Authentication) SUBSCRIBER
+============================================================
+
+IDA subscribes to WebSub topic: {partnerId}/CREDENTIAL_ISSUED
+
+  PHASE 1 — Receive & Store Event
+  ---------------------------------
+  IdChangeEventHandlerServiceImpl.handleCredentialIssued(eventModel)
+  └─► credentialStoreService.storeEventModel(eventModel)
+        → INSERT into credential_event_store
+          { id, credentialTransactionId, requestId,
+            status: "NEW", eventModel(JSON), createDTimes }
+
+  PHASE 2 — Batch Processing
+  ---------------------------
+  @Scheduled fixedDelay=${ida.batch.credential.store.job.delay:1000}ms
+  CredentialStoreTasklet.execute()
+    → credentialEventRepo.findNewOrFailedEvents(pageSize=100)
+    → ForkJoinPool (threads: ida.batch.credential.store.thread.count=10)
+
+  Per event — CredentialStoreServiceImpl.doProcessCredentialStoreEvent():
+  -----------------------------------------------------------------------
+  A) Parse EventModel JSON from credential_event_store
+     Extract from event.data:
+       - dataShareUri
+       - MODULO, SALT
+       - demoEncryptedRandomKey  (RSA-encrypted AES key for demographics)
+       - bioEncryptedRandomKey   (RSA-encrypted AES key for biometrics)
+       - idHash, transactionLimit, expiryTimestamp, tokenId
+
+  B) Save salt:
+     → INSERT into ida_uin_hash_salt { idHash, MODULO, SALT }
+
+  C) Re-encrypt random keys under IDA's own KMS:
+     → securityManager.reEncryptAndStoreRandomKey(idHash,
+         demoEncryptedRandomKey, bioEncryptedRandomKey)
+       [key rotation — re-encrypts under IDA's internal KMS]
+
+  D) Download credential from DataShare:
+     → GET {dataShareUri}  (DataShare Service)
+       Response: credential JSON
+         { demographics: { fullName, dob, gender, phone, ... },
+           biometrics:   { finger_Left_Thumb: <base64>,
+                           iris_Left: <base64>,
+                           face: <base64>, ... } }
+
+  E) Build and store identity entity:
+     → splitDemoBioData():
+         keys starting with finger/iris/face → biometricData (bytes)
+         all other keys                      → demographicData (bytes)
+     → identityCacheRepo.findById(idHash) → INSERT or UPDATE
+         { idHash, demographicData(bytes), biometricData(bytes),
+           expiryTimestamp, transactionLimit, tokenId, updatedDTimes }
+     → storeIdentityEntity() → identityCacheRepo.save()
+
+  F) Update event status:
+     → credential_event_store → status = "STORED"
+     → CredentialStoreStatusEventPublisher.publishEvent()
+         topic:   ida-topic-credential-status-update
+         payload: { requestId, status: "STORED", updatedDTimes: <UTC> }
+
+  PHASE 3 — Status propagates back
+  ----------------------------------
+  WebSub → credential-request-generator
+    → Updates credential_transaction → status = "STORED"

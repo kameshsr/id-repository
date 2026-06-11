@@ -1,0 +1,160 @@
+{
+  "info": {
+    "name": "VID (vid-service)",
+    "description": "Postman collection for VidController (MOSIP id-repository, id-repository-vid-service).\n\nBase path: /idrepository/v1 (port 8091).\n\nSet `baseUrl` and `authToken` variables. All endpoints require `Authorization` cookie.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8091/idrepository/v1" },
+    { "key": "authToken", "value": "" },
+    { "key": "uin", "value": "" },
+    { "key": "vid", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Create VID",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"mosip.vid.create\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-06-11T10:00:00.000Z\",\n  \"request\": {\n    \"uin\": \"{{uin}}\",\n    \"vidType\": \"PERPETUAL\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/vid",
+          "host": ["{{baseUrl}}"],
+          "path": ["vid"]
+        },
+        "description": "POST /vid — generates a new VID. vidType: PERPETUAL | TEMPORARY (per vid policy). Role: postvid."
+      }
+    },
+    {
+      "name": "Create Draft VID",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"mosip.vid.create\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-06-11T10:00:00.000Z\",\n  \"request\": {\n    \"uin\": \"{{uin}}\",\n    \"vidType\": \"PERPETUAL\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/draft/vid",
+          "host": ["{{baseUrl}}"],
+          "path": ["draft", "vid"]
+        },
+        "description": "POST /draft/vid — generates a VID in DRAFT status. Role: postdraftvid."
+      }
+    },
+    {
+      "name": "Retrieve UIN by VID",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/vid/{{vid}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["vid", "{{vid}}"]
+        },
+        "description": "GET /vid/{VID} — returns the decrypted UIN for a valid VID. Role: getvid."
+      }
+    },
+    {
+      "name": "Retrieve VIDs by UIN",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/vid/uin/{{uin}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["vid", "uin", "{{uin}}"]
+        },
+        "description": "GET /vid/uin/{UIN} — lists all VIDs associated with a UIN. Role: getviduin."
+      }
+    },
+    {
+      "name": "Update VID Status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"mosip.vid.update\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-06-11T10:00:00.000Z\",\n  \"request\": {\n    \"vidStatus\": \"REVOKED\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/vid/{{vid}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["vid", "{{vid}}"]
+        },
+        "description": "PATCH /vid/{VID} — updates VID status (only if current status is ACTIVE). e.g. vidStatus: REVOKED, DEACTIVATED. Role: patchvid."
+      }
+    },
+    {
+      "name": "Regenerate VID",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/vid/{{vid}}/regenerate",
+          "host": ["{{baseUrl}}"],
+          "path": ["vid", "{{vid}}", "regenerate"]
+        },
+        "description": "POST /vid/{VID}/regenerate — regenerates VID (current status must be ACTIVE, USED, or EXPIRED). Role: postvidregenerate."
+      }
+    },
+    {
+      "name": "Deactivate VIDs for UIN",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"mosip.vid.deactivate\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-06-11T10:00:00.000Z\",\n  \"request\": {\n    \"uin\": \"{{uin}}\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/vid/deactivate",
+          "host": ["{{baseUrl}}"],
+          "path": ["vid", "deactivate"]
+        },
+        "description": "POST /vid/deactivate — deactivates all ACTIVE VIDs of the UIN. Role: postviddeactivate."
+      }
+    },
+    {
+      "name": "Reactivate VIDs for UIN",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"mosip.vid.reactivate\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-06-11T10:00:00.000Z\",\n  \"request\": {\n    \"uin\": \"{{uin}}\"\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/vid/reactivate",
+          "host": ["{{baseUrl}}"],
+          "path": ["vid", "reactivate"]
+        },
+        "description": "POST /vid/reactivate — reactivates DEACTIVATED/INACTIVE (non-expired) VIDs of the UIN. Role: postvidreactivate."
+      }
+    }
+  ]
+}

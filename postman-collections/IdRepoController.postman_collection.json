@@ -1,0 +1,226 @@
+{
+  "info": {
+    "name": "Id Repo (identity-service)",
+    "description": "Postman collection for IdRepoController (MOSIP id-repository, id-repository-identity-service).\n\nBase path: /idrepository/v1/identity (port 8090).\n\nSet `baseUrl` and `authToken` variables. All endpoints require `Authorization` cookie.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8090/idrepository/v1/identity" },
+    { "key": "authToken", "value": "" },
+    { "key": "uin", "value": "" },
+    { "key": "vid", "value": "" },
+    { "key": "individualId", "value": "" },
+    { "key": "rid", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Add Identity",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"mosip.id.create\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-06-11T10:00:00.000Z\",\n  \"request\": {\n    \"registrationId\": \"{{rid}}\",\n    \"identity\": {\n      \"IDSchemaVersion\": 1.0,\n      \"UIN\": \"{{uin}}\",\n      \"fullName\": [{ \"language\": \"eng\", \"value\": \"John Doe\" }],\n      \"dateOfBirth\": \"1990/01/01\"\n    },\n    \"documents\": [\n      { \"category\": \"individualBiometrics\", \"value\": \"<base64-cbeff>\" }\n    ],\n    \"verifiedAttributes\": []\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": ["{{baseUrl}}"],
+          "path": [""]
+        },
+        "description": "POST / — creates a new ID record (identity must match the configured ID schema). Role: postidrepo."
+      }
+    },
+    {
+      "name": "Update Identity",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"mosip.id.update\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-06-11T10:00:00.000Z\",\n  \"request\": {\n    \"registrationId\": \"{{rid}}\",\n    \"status\": \"ACTIVATED\",\n    \"identity\": {\n      \"IDSchemaVersion\": 1.0,\n      \"UIN\": \"{{uin}}\"\n    }\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/",
+          "host": ["{{baseUrl}}"],
+          "path": [""]
+        },
+        "description": "PATCH / — updates an existing ID record for a given UIN. Role: patchidrepo."
+      }
+    },
+    {
+      "name": "Retrieve Identity by Id/Vid (deprecated GET)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/idvid/{{individualId}}?type=all",
+          "host": ["{{baseUrl}}"],
+          "path": ["idvid", "{{individualId}}"],
+          "query": [
+            { "key": "type", "value": "all", "description": "bio | demo | all" },
+            { "key": "idType", "value": "", "disabled": true },
+            { "key": "fingerExtractionFormat", "value": "", "disabled": true },
+            { "key": "irisExtractionFormat", "value": "", "disabled": true },
+            { "key": "faceExtractionFormat", "value": "", "disabled": true }
+          ]
+        },
+        "description": "GET /idvid/{id} — deprecated; retrieves identity by UIN/VID. Role: getidvidid."
+      }
+    },
+    {
+      "name": "Retrieve Identity by Id (POST)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"{{individualId}}\",\n  \"type\": \"all\",\n  \"idType\": null,\n  \"fingerExtractionFormat\": null,\n  \"irisExtractionFormat\": null,\n  \"faceExtractionFormat\": null\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/idvid/",
+          "host": ["{{baseUrl}}"],
+          "path": ["idvid", ""]
+        },
+        "description": "POST /idvid/ — retrieves identity; body is plain IdRequestByIdDTO. Role: postidvidid."
+      }
+    },
+    {
+      "name": "Retrieve Identity by Id V2 (POST, wrapped)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"mosip.id.read\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-06-11T10:00:00.000Z\",\n  \"request\": {\n    \"id\": \"{{individualId}}\",\n    \"type\": \"all\",\n    \"idType\": null,\n    \"fingerExtractionFormat\": null,\n    \"irisExtractionFormat\": null,\n    \"faceExtractionFormat\": null\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/idvid/v2",
+          "host": ["{{baseUrl}}"],
+          "path": ["idvid", "v2"]
+        },
+        "description": "POST /idvid/v2 — same as /idvid/ but body wrapped in RequestWrapper. Role: postidvididv2."
+      }
+    },
+    {
+      "name": "Get Auth Type Status (by IdType, deprecated)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/authtypes/status/individualIdType/UIN/individualId/{{individualId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["authtypes", "status", "individualIdType", "UIN", "individualId", "{{individualId}}"]
+        },
+        "description": "GET /authtypes/status/individualIdType/{IDType}/individualId/{ID} — deprecated since 1.2.0. IDType: UIN or VID."
+      }
+    },
+    {
+      "name": "Get Auth Type Status",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/authtypes/status/{{individualId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["authtypes", "status", "{{individualId}}"]
+        },
+        "description": "GET /authtypes/status/{ID} — id type auto-detected (UIN/VID)."
+      }
+    },
+    {
+      "name": "Update Auth Type Status",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"mosip.identity.authtype.status.update\",\n  \"version\": \"v1\",\n  \"requestTime\": \"2026-06-11T10:00:00.000Z\",\n  \"consentObtained\": true,\n  \"individualId\": \"{{individualId}}\",\n  \"individualIdType\": \"UIN\",\n  \"request\": [\n    {\n      \"authType\": \"bio\",\n      \"authSubType\": \"FINGER\",\n      \"locked\": true,\n      \"unlockForSeconds\": null\n    }\n  ]\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/authtypes/status",
+          "host": ["{{baseUrl}}"],
+          "path": ["authtypes", "status"]
+        },
+        "description": "POST /authtypes/status — locks/unlocks auth types for an individual. Role: postauthtypesstatus."
+      }
+    },
+    {
+      "name": "Get RID by Individual Id (deprecated)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/rid/{{individualId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["rid", "{{individualId}}"],
+          "query": [
+            { "key": "idType", "value": "", "disabled": true }
+          ]
+        },
+        "description": "GET /rid/{individualId} — deprecated since 1.2.3; returns RID for a UIN/VID."
+      }
+    },
+    {
+      "name": "Search IdVid Metadata",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"id\": \"mosip.idrepo.idvid-metadata.search\",\n  \"version\": \"v1\",\n  \"requesttime\": \"2026-06-11T10:00:00.000Z\",\n  \"request\": {\n    \"individualId\": \"{{individualId}}\",\n    \"idType\": null\n  }\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/idvid-metadata/search",
+          "host": ["{{baseUrl}}"],
+          "path": ["idvid-metadata", "search"]
+        },
+        "description": "POST /idvid-metadata/search — returns IdVid metadata (incl. RID) for a UIN/VID. Role: postSearchIdVidMetadata."
+      }
+    },
+    {
+      "name": "Get Remaining Update Counts",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Cookie", "value": "Authorization={{authToken}}" }
+        ],
+        "url": {
+          "raw": "{{baseUrl}}/{{individualId}}/update-counts?attribute_list=fullName,dateOfBirth",
+          "host": ["{{baseUrl}}"],
+          "path": ["{{individualId}}", "update-counts"],
+          "query": [
+            { "key": "attribute_list", "value": "fullName,dateOfBirth" },
+            { "key": "idType", "value": "", "disabled": true }
+          ]
+        },
+        "description": "GET /{individualId}/update-counts — remaining attribute-update counts. Role: remainingUpdateCountByIndividualId."
+      }
+    }
+  ]
+}
